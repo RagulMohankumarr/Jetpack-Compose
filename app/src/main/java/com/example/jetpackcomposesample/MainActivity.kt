@@ -23,57 +23,85 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.jetpackcomposesample.ui.theme.JetpackComposeSampleTheme
 
 class MainActivity : ComponentActivity() {
+    val fonts = FontFamily(Font(R.font.oleoscriptbold, FontWeight.Bold),
+        Font(R.font.oleoscriptregular, FontWeight.Normal),
+    )
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val painter = painterResource(id = R.drawable.sampleimage1)
-            val contentDescription = "This is Me"
-            val title = "About me"
-            Box(modifier = Modifier.fillMaxWidth(0.5f)) {
-                GenerateImageCard(painter = painter, contentDescription = contentDescription, title = title)
-            }
+            Box(
+                modifier = Modifier
+                    .background(Color.Cyan)
+                    .fillMaxSize()
+            )
+            {
+                Text(
+                    text = buildAnnotatedString {
+                                                withStyle(
+                                                    style = SpanStyle(
+                                                        color = Color.Yellow,
+                                                        fontSize = 30.sp
+                                                    )
+                                                )
+                                                {
+                                                    append("J")
+                                                }
+                        append("et")
+                        withStyle(
+                            style = SpanStyle(
+                                color = Color.Red,
+                                fontSize = 30.sp
+                            )
+                        )
+                        {
+                            append("C")
+                        }
+                        append("ompose")
+                        withStyle(
+                            style = SpanStyle(
+                                color = Color.White,
+                                fontSize = 30.sp
+                            )
+                        )
+                        {
+                            append("T")
+                        }
+                        append("ext")
+                        withStyle(
+                            style = SpanStyle(
+                                color = Color.Gray,
+                                fontSize = 30.sp
+                            )
+                        )
+                        {
+                            append("S")
+                        }
+                        append("tyling")
 
-        }
-    }
-}
-
-@Composable
-fun GenerateImageCard(
-    painter: Painter,
-    contentDescription: String,
-    title: String,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(15.dp),
-        elevation = 5.dp
-    )
-    {
-        Box(modifier = Modifier.height(200.dp)) {
-            Image(painter = painter, contentDescription = contentDescription, contentScale = ContentScale.Crop )
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color.Blue),
-                        startY = 300f
-                    )
-                )) {
-                
-            }
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            contentAlignment = Alignment.BottomStart) {
-                Text(text = title, style = TextStyle(Color.White),fontSize=16.sp)
+                    },
+                    color = Color.Black,
+                    fontSize = 30.sp,
+                    fontFamily = fonts,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    textDecoration = TextDecoration.Underline,
+                )
             }
         }
     }
