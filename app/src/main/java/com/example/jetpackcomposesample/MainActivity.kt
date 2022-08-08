@@ -16,10 +16,13 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -37,73 +40,50 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.jetpackcomposesample.ui.theme.JetpackComposeSampleTheme
+import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
-    val fonts = FontFamily(Font(R.font.oleoscriptbold, FontWeight.Bold),
+    val fonts = FontFamily(
+        Font(R.font.oleoscriptbold, FontWeight.Bold),
         Font(R.font.oleoscriptregular, FontWeight.Normal),
     )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Box(
-                modifier = Modifier
-                    .background(Color.Cyan)
-                    .fillMaxSize()
-            )
-            {
-                Text(
-                    text = buildAnnotatedString {
-                                                withStyle(
-                                                    style = SpanStyle(
-                                                        color = Color.Yellow,
-                                                        fontSize = 30.sp
-                                                    )
-                                                )
-                                                {
-                                                    append("J")
-                                                }
-                        append("et")
-                        withStyle(
-                            style = SpanStyle(
-                                color = Color.Red,
-                                fontSize = 30.sp
-                            )
-                        )
-                        {
-                            append("C")
-                        }
-                        append("ompose")
-                        withStyle(
-                            style = SpanStyle(
-                                color = Color.White,
-                                fontSize = 30.sp
-                            )
-                        )
-                        {
-                            append("T")
-                        }
-                        append("ext")
-                        withStyle(
-                            style = SpanStyle(
-                                color = Color.Gray,
-                                fontSize = 30.sp
-                            )
-                        )
-                        {
-                            append("S")
-                        }
-                        append("tyling")
-
-                    },
-                    color = Color.Black,
-                    fontSize = 30.sp,
-                    fontFamily = fonts,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    textDecoration = TextDecoration.Underline,
+            Column(Modifier.fillMaxSize()) {
+                val color = remember {
+                    mutableStateOf(Color.Yellow)
+                }
+                ColourStates(Modifier.weight(1f).fillMaxSize()){
+                    color.value=it
+                }
+                Box(
+                    modifier = Modifier
+                        .background(color.value)
+                        .weight(1f)
+                        .fillMaxSize()
                 )
             }
         }
     }
+}
+
+@Composable
+fun ColourStates(modifier: Modifier = Modifier, updatedColor: (Color) -> Unit) {
+
+    Box(modifier = modifier
+        .background(Red)
+        .clickable {
+            updatedColor(
+                 Color(
+                        Random.nextFloat(),
+                        Random.nextFloat(),
+                        Random.nextFloat(),
+                        1f
+                    )
+                )
+        }
+    )
 }
 
