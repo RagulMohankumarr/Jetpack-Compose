@@ -2,6 +2,7 @@ package com.example.jetpackcomposesample
 
 import android.animation.Keyframe
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.animateColor
@@ -21,9 +22,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.Blue
 import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.graphics.Color.Companion.Yellow
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layoutId
@@ -39,6 +43,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ChainStyle
@@ -56,35 +62,53 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            var sizeState by remember {
-                mutableStateOf(200.dp)
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressBar(percentage = 0.8f, number = 100)
             }
-            val animateState by animateDpAsState(targetValue = sizeState, keyframes {
-                durationMillis = 5000
-                sizeState at 0 with LinearEasing
-                sizeState * 1.5f at 1000 with FastOutLinearInEasing
-                sizeState * 2f at 5000
-            })
-            val infiniteState = rememberInfiniteTransition()
-            val color by infiniteState.animateColor(
-                initialValue = Yellow,
-                targetValue = Blue,
-                animationSpec = infiniteRepeatable(
-                    tween(1000),
-                    repeatMode = RepeatMode.Reverse
-                )
+        }
+    }
 
+    @Composable
+    fun CircularProgressBar(
+        percentage: Float,
+        number: Int,
+        fontSize: TextUnit = 28.sp,
+        radius: Dp = 50.dp,
+        color: Color = Color.Green,
+        strokeWidth: Dp = 8.dp,
+        animDuration: Int = 1000,
+        animDelay: Int = 0
+    ) {
+        var animPlayed by remember {
+            mutableStateOf(false)
+        }
+        val curPercentage = animateFloatAsState(
+            targetValue = if (animPlayed) percentage else 0f,
+            animationSpec = tween(
+                durationMillis = animDuration,
+                delayMillis = animDelay
             )
-            Box(
-                modifier = Modifier
-                    .size(animateState)
-                    .background(color), contentAlignment = Alignment.Center
-            )
-            {
-                Button(onClick = { sizeState += 50.dp }) {
-                    Text("Animate Me")
-                }
+        )
+        LaunchedEffect(key1 = 1) {
+            animPlayed = true
+        }
+        Box(modifier = Modifier.size(radius * 2), contentAlignment = Alignment.Center) {
+            Log.i("check","CurPercentage:${curPercentage.value}")
+            Canvas(modifier = Modifier.size(radius * 2)) {
+                drawArc(
+                    color = color,
+                    90f,
+                    360 * curPercentage.value,
+                    useCenter = false,
+                    style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round)
+                )
             }
+            Text(
+                text = (curPercentage.value * number).toInt().toString(),
+                color = Black,
+                fontSize = fontSize,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
