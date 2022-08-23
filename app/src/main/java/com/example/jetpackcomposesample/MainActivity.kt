@@ -4,6 +4,7 @@ import android.animation.Keyframe
 import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
+import android.view.animation.OvershootInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.animateColor
@@ -18,11 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -65,7 +62,12 @@ import androidx.constraintlayout.compose.ChainStyle
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.jetpackcomposesample.ui.theme.JetpackComposeSampleTheme
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -79,10 +81,58 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            Navigation()
+            Surface(color = Black,modifier = Modifier.fillMaxSize()) {
+                Navigation()
+            }
         }
     }
 }
 
+@Composable
+fun Navigation() {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = "splash_screen") {
+        composable("splash_screen") {
+            SplashScreen(navController)
+        }
+        composable("main_screen") {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "Main Screen", color = Color.White)
+            }
+        }
+    }
+}
 
+@Composable
+fun SplashScreen(navController: NavController) {
+    var scale = remember {
+        Animatable(0f)
+    }
+    LaunchedEffect(key1 = true) {
+        scale.animateTo(
+            targetValue = 0.3f,
+            animationSpec = tween(
+                durationMillis = 500,
+                easing = {
+                    OvershootInterpolator(2f).getInterpolation(it)
+                }
+            )
+        )
+        delay(3000L)
+        navController.navigate("main_screen")
+    }
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.logo1),
+            contentDescription = "Logo1",
+            modifier = Modifier.scale(scale.value)
+        )
+    }
+}
 
