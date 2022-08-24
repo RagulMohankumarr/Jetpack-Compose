@@ -19,8 +19,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -63,8 +67,10 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.jetpackcomposesample.ui.theme.JetpackComposeSampleTheme
 import kotlinx.coroutines.delay
@@ -81,58 +87,137 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            Surface(color = Black,modifier = Modifier.fillMaxSize()) {
-                Navigation()
+            JetpackComposeSampleTheme {
+                val navController = rememberNavController()
+                Scaffold(bottomBar = {
+                    BottomNavigationBar(
+                        items = listOf(
+                            BottomNavigationBarItem(
+                                name = "Home",
+                                route = "home",
+                                icon = Icons.Default.Home
+                            ),
+                            BottomNavigationBarItem(
+                                name = "Chat",
+                                route = "chat",
+                                icon = Icons.Default.Notifications
+                            ),
+                            BottomNavigationBarItem(
+                                name = "Settings",
+                                route = "settings",
+                                icon = Icons.Default.Settings
+                            )
+                        ),
+                        navController = navController,
+                        onItemClick = {
+                            navController.navigate(it.route)
+                        }
+
+                    )
+                }) {
+                    Navigation(navController = navController)
+                }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun Navigation() {
-    val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "splash_screen") {
-        composable("splash_screen") {
-            SplashScreen(navController)
-        }
-        composable("main_screen") {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "Main Screen", color = Color.White)
-            }
-        }
-    }
-}
-
-@Composable
-fun SplashScreen(navController: NavController) {
-    var scale = remember {
-        Animatable(0f)
-    }
-    LaunchedEffect(key1 = true) {
-        scale.animateTo(
-            targetValue = 0.3f,
-            animationSpec = tween(
-                durationMillis = 500,
-                easing = {
-                    OvershootInterpolator(2f).getInterpolation(it)
+fun BottomNavigationBar(
+    items: List<BottomNavigationBarItem>,
+    navController: NavHostController,
+    modifier: Modifier = Modifier,
+    onItemClick: (BottomNavigationBarItem) -> Unit
+) {
+    val backStackEntry = navController.currentBackStackEntryAsState()
+    BottomNavigation(
+        modifier = modifier,
+        backgroundColor = Yellow,
+        elevation = 5.dp
+    ) {
+        items.forEach { item ->
+            var selected = item.route == backStackEntry.value?.destination?.route
+            BottomNavigationItem(
+                selected = selected,
+                onClick = { onItemClick(item) },
+                selectedContentColor = Blue,
+                unselectedContentColor = Green,
+                icon = {
+                    Column(horizontalAlignment = CenterHorizontally) {
+                        if (item.badgeCount > 0) {
+                            BadgeBox(
+                                badgeContent = {
+                                    Text(text = item.badgeCount.toString())
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = item.name
+                                )
+                            }
+                        } else {
+                            Icon(
+                                imageVector = item.icon,
+                                contentDescription = item.name
+                            )
+                        }
+                        if (selected) {
+                            Text(
+                                text = item.name,
+                                textAlign = TextAlign.Center,
+                                fontSize = 10.sp
+                            )
+                        }
+                    }
                 }
             )
-        )
-        delay(3000L)
-        navController.navigate("main_screen")
-    }
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.logo1),
-            contentDescription = "Logo1",
-            modifier = Modifier.scale(scale.value)
-        )
+        }
     }
 }
 
+
+@Composable
+fun Navigation(navController: NavHostController) {
+    NavHost(navController = navController, startDestination = "home") {
+        composable("home") {
+            HomeScreen()
+        }
+        composable("chat") {
+            ChatScreen()
+        }
+        composable("settings") {
+            SettingsScreen()
+        }
+    }
+}
+
+@Composable
+fun HomeScreen() {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Text("Home Screen")
+    }
+}
+
+@Composable
+fun ChatScreen() {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Text("Chat Screen")
+    }
+}
+
+@Composable
+fun SettingsScreen() {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Text("Settings Screen")
+    }
+}
