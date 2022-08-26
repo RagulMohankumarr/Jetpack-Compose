@@ -1,6 +1,7 @@
 package com.example.jetpackcomposesample
 
 import android.animation.Keyframe
+import android.content.res.Resources
 import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
@@ -14,7 +15,9 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -24,10 +27,12 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.BottomCenter
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
@@ -41,11 +46,15 @@ import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -88,136 +97,109 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             JetpackComposeSampleTheme {
-                val navController = rememberNavController()
-                Scaffold(bottomBar = {
-                    BottomNavigationBar(
-                        items = listOf(
-                            BottomNavigationBarItem(
-                                name = "Home",
-                                route = "home",
-                                icon = Icons.Default.Home
-                            ),
-                            BottomNavigationBarItem(
-                                name = "Chat",
-                                route = "chat",
-                                icon = Icons.Default.Notifications
-                            ),
-                            BottomNavigationBarItem(
-                                name = "Settings",
-                                route = "settings",
-                                icon = Icons.Default.Settings
-                            )
-                        ),
-                        navController = navController,
-                        onItemClick = {
-                            navController.navigate(it.route)
-                        }
+                val moonBgScrollSpeed = 0.20f
+                val midBgScrollSpeed = 0.10f
 
-                    )
-                }) {
-                    Navigation(navController = navController)
+                val imageHeight = (LocalConfiguration.current.screenWidthDp * (2f / 3f)).dp
+                val lazyListState = rememberLazyListState()
+
+                var moonOffset by remember {
+                    mutableStateOf(0f)
+                }
+                var midBgOffset by remember {
+                    mutableStateOf(0f)
+                }
+                val nestedScrollConnection = object : NestedScrollConnection {
+                    override fun onPreScroll(
+                        available: Offset,
+                        source: NestedScrollSource
+                    ): Offset {
+                        var delta = available.y
+                        val layoutInfo = lazyListState.layoutInfo
+                        if (lazyListState.firstVisibleItemIndex == 0) {
+                            return Offset.Zero
+                        }
+                        if (layoutInfo.visibleItemsInfo.lastOrNull()?.index == layoutInfo.totalItemsCount - 1) {
+                            Offset.Zero
+                        }
+                        moonOffset += delta * moonBgScrollSpeed
+                        midBgOffset += delta * midBgScrollSpeed
+                        return Offset.Zero
+                    }
+                }
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .nestedScroll(nestedScrollConnection),
+                    state = lazyListState
+                ) {
+                    items(10) {
+                        Text(
+                            text = "sample start", modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        )
+                    }
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clipToBounds()
+                                .height(imageHeight + midBgOffset.toDp())
+                                .background(
+                                    Brush.verticalGradient(
+                                        listOf(
+                                            Color(0xFFf36b21),
+                                            Color(0xFFf9a521)
+                                        )
+                                    )
+                                )
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_moon_bg),
+                                contentDescription = "moon",
+                                contentScale = ContentScale.FillWidth,
+                                alignment = BottomCenter,
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .graphicsLayer {
+                                        translationY = moonOffset
+                                    },
+
+                                )
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_mid_bg),
+                                contentDescription = "mid",
+                                contentScale = ContentScale.FillWidth,
+                                alignment = BottomCenter,
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .graphicsLayer {
+                                        translationY = midBgOffset
+                                    },
+                            )
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_outer_bg),
+                                contentDescription = "outer",
+                                contentScale = ContentScale.FillWidth,
+                                alignment = BottomCenter,
+                                modifier = Modifier.matchParentSize()
+                            )
+                        }
+                    }
+                    items(20) {
+                        Text(
+                            text = "sample end", modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        )
+                    }
                 }
             }
         }
     }
-}
 
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun BottomNavigationBar(
-    items: List<BottomNavigationBarItem>,
-    navController: NavHostController,
-    modifier: Modifier = Modifier,
-    onItemClick: (BottomNavigationBarItem) -> Unit
-) {
-    val backStackEntry = navController.currentBackStackEntryAsState()
-    BottomNavigation(
-        modifier = modifier,
-        backgroundColor = Yellow,
-        elevation = 5.dp
-    ) {
-        items.forEach { item ->
-            var selected = item.route == backStackEntry.value?.destination?.route
-            BottomNavigationItem(
-                selected = selected,
-                onClick = { onItemClick(item) },
-                selectedContentColor = Blue,
-                unselectedContentColor = Green,
-                icon = {
-                    Column(horizontalAlignment = CenterHorizontally) {
-                        if (item.badgeCount > 0) {
-                            BadgeBox(
-                                badgeContent = {
-                                    Text(text = item.badgeCount.toString())
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = item.icon,
-                                    contentDescription = item.name
-                                )
-                            }
-                        } else {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = item.name
-                            )
-                        }
-                        if (selected) {
-                            Text(
-                                text = item.name,
-                                textAlign = TextAlign.Center,
-                                fontSize = 10.sp
-                            )
-                        }
-                    }
-                }
-            )
-        }
-    }
-}
-
-
-@Composable
-fun Navigation(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = "home") {
-        composable("home") {
-            HomeScreen()
-        }
-        composable("chat") {
-            ChatScreen()
-        }
-        composable("settings") {
-            SettingsScreen()
-        }
-    }
-}
-
-@Composable
-fun HomeScreen() {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Text("Home Screen")
-    }
-}
-
-@Composable
-fun ChatScreen() {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Text("Chat Screen")
-    }
-}
-
-@Composable
-fun SettingsScreen() {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Text("Settings Screen")
+    private fun Float.toDp(): Dp {
+        return (this / Resources.getSystem().displayMetrics.density).dp
     }
 }

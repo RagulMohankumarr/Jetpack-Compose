@@ -3,7 +3,11 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/Tringapps-Admin/Desktop/Projects/JetpackComposeSample/app/src/main/res/drawable/ic_mid_bg.xml" value="0.134" />
+        <entry key="..\:/Users/Tringapps-Admin/Desktop/Projects/JetpackComposeSample/app/src/main/res/drawable/ic_moon_bg.xml" value="0.134" />
+        <entry key="..\:/Users/Tringapps-Admin/Desktop/Projects/JetpackComposeSample/app/src/main/res/drawable/ic_outer_bg.xml" value="0.134" />
         <entry key="..\:/Users/Tringapps-Admin/Desktop/Projects/JetpackComposeSample/app/src/main/res/drawable/logo1.xml" value="0.134" />
+        <entry key="..\:/Users/Tringapps-Admin/Desktop/Projects/JetpackComposeSample/app/src/main/res/layout/ic_moon_bg.xml" value="0.17552083333333332" />
       </map>
     </option>
   </component>
