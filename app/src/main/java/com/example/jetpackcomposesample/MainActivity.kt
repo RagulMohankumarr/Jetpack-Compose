@@ -52,6 +52,7 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -72,6 +73,8 @@ import androidx.constraintlayout.compose.ChainStyle
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -79,13 +82,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.jetpackcomposesample.ui.theme.JetpackComposeSampleTheme
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.jar.Manifest
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
+@OptIn(ExperimentalPermissionsApi::class)
 class MainActivity : ComponentActivity() {
 
 
@@ -94,40 +101,56 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             JetpackComposeSampleTheme {
-                var items by remember {
-                    mutableStateOf((1..20).map {
-                        ListItem(
-                            "Sample $it",
-                            false
-                        )
-                    }
+                var permissions = rememberMultiplePermissionsState(
+                    permissions = listOf(
+                        android.Manifest.permission.RECORD_AUDIO,
+                        android.Manifest.permission.CAMERA,
                     )
-                }
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize()
+                )
+                val lifecycleOwner = LocalLifecycleOwner.current
+                DisposableEffect(key1 = lifecycleOwner, effect = {
+                    var observer = LifecycleEventObserver { _, event ->
+                        if (event == Lifecycle.Event.ON_START) {
+                            permissions.launchMultiplePermissionRequest()
+                        }
+                    }
+                    lifecycleOwner.lifecycle.addObserver(observer)
+                    onDispose {
+                        lifecycleOwner.lifecycle.removeObserver(observer)
+                    }
+                })
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    items(items.size) { i ->
-                        Row(modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                items = items.mapIndexed { index, listItem ->
-                                    if(index==i){
-                                        listItem.copy(isSelected = !listItem.isSelected)
-                                    }else listItem
+                    permissions.permissions.forEach {
+                        when (it.permission) {
+                            android.Manifest.permission.RECORD_AUDIO -> {
+                                when {
+                                    it.hasPermission -> {
+                                        Text(text = "audio recording permission accepted")
+                                    }
+                                    it.shouldShowRationale -> {
+                                        Text(text = "audio recording permission is needed")
+                                    }
+                                    it.isPermanentlyDenied() -> {
+                                        Text(text = "audio recording permission is permanently denied")
+                                    }
                                 }
                             }
-                            .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(text = "${items[i].title}")
-                            if (items[i].isSelected) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = "selected",
-                                    tint = Green,
-                                    modifier = Modifier.size(20.dp)
-                                )
+                            android.Manifest.permission.CAMERA -> {
+                                when {
+                                    it.hasPermission -> {
+                                        Text(text = "Camera  permission accepted")
+                                    }
+                                    it.shouldShowRationale -> {
+                                        Text(text = "Camera  permission is needed")
+                                    }
+                                    it.isPermanentlyDenied() -> {
+                                        Text(text = "Camera  permission is permanently denied")
+                                    }
+                                }
                             }
                         }
                     }
