@@ -82,6 +82,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.jetpackcomposesample.ui.theme.JetpackComposeSampleTheme
+import com.example.jetpackcomposesample.ui.theme.LocalSpacing
+import com.example.jetpackcomposesample.ui.theme.spacing
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.delay
@@ -101,59 +103,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             JetpackComposeSampleTheme {
-                var permissions = rememberMultiplePermissionsState(
-                    permissions = listOf(
-                        android.Manifest.permission.RECORD_AUDIO,
-                        android.Manifest.permission.CAMERA,
-                    )
-                )
-                val lifecycleOwner = LocalLifecycleOwner.current
-                DisposableEffect(key1 = lifecycleOwner, effect = {
-                    var observer = LifecycleEventObserver { _, event ->
-                        if (event == Lifecycle.Event.ON_START) {
-                            permissions.launchMultiplePermissionRequest()
-                        }
-                    }
-                    lifecycleOwner.lifecycle.addObserver(observer)
-                    onDispose {
-                        lifecycleOwner.lifecycle.removeObserver(observer)
-                    }
-                })
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                Surface(
+                    color = MaterialTheme.colors.background,
+                    modifier = Modifier.padding(MaterialTheme.spacing.medium)
                 ) {
-                    permissions.permissions.forEach {
-                        when (it.permission) {
-                            android.Manifest.permission.RECORD_AUDIO -> {
-                                when {
-                                    it.hasPermission -> {
-                                        Text(text = "audio recording permission accepted")
-                                    }
-                                    it.shouldShowRationale -> {
-                                        Text(text = "audio recording permission is needed")
-                                    }
-                                    it.isPermanentlyDenied() -> {
-                                        Text(text = "audio recording permission is permanently denied")
-                                    }
-                                }
-                            }
-                            android.Manifest.permission.CAMERA -> {
-                                when {
-                                    it.hasPermission -> {
-                                        Text(text = "Camera  permission accepted")
-                                    }
-                                    it.shouldShowRationale -> {
-                                        Text(text = "Camera  permission is needed")
-                                    }
-                                    it.isPermanentlyDenied() -> {
-                                        Text(text = "Camera  permission is permanently denied")
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    MaterialTheme.spacing.medium
                 }
             }
         }
